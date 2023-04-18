@@ -1,0 +1,86 @@
+# основной скрипт
+
+import imaplib
+import email
+import time
+import telegram
+import asyncio
+import logging
+import sys
+
+#from config import IMAP_HOST, IMAP_USER, IMAP_PASSWORD, BOT_TOKEN, CHAT_ID
+
+#logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+#logging.basicConfig(filename='bot-mail.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stdout)
+logging.basicConfig(filename='bot-mail.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+# параметры подключения к почтовому серверу
+# настройки почты
+IMAP_HOST = 'imap.yandex.com'
+IMAP_USER = '#####@rhoster.ru'
+IMAP_PASSWORD = '#####'
+
+# настройки Telegram
+BOT_TOKEN = '#####'
+CHAT_ID = '-######'
+
+
+# функция получения тела сообщения в виде строки
+def get_body(email_message):
+    if email_message.is_multipart():
+        # если сообщение содержит несколько частей, например, текст и HTML
+        for part in email_message.walk():
+            content_type = part.get_content_type()
+            if content_type == 'text/plain' or content_type == 'text/html':
+                body = part.get_payload(decode=True).decode('utf-8')
+                # ищем разделитель и возвращаем только то, что находится до него
+                return body.split('***')[0].strip()
+    else:
+        # если сообщение состоит из одной части
+        body = email_message.get_payload(decode=True).decode('utf-8')
+        # ищем разделитель и возвращаем только то, что находится до него
+        return body.split('***')[0].strip()
+
+# параметры подключения к почтовому серверу
+# настройки почты
+IMAP_HOST = 'imap.yandex.com'
+IMAP_USER = '####@#####.ru'
+IMAP_PASSWORD = '######'
+
+async def main():
+    # создание объекта IMAP4 и подключение к серверу
+    mail = imaplib.IMAP4_SSL(IMAP_HOST)
+    mail.login(IMAP_USER, IMAP_PASSWORD)
+    mail.select('inbox')
+
+    # создание объекта Telegram Bot API
+    # настройки Telegram
+    BOT_TOKEN = '#####'
+    CHAT_ID = '-######'
+    bot = telegram.Bot(token=BOT_TOKEN)
+
+    try:
+        # поиск новых сообщений
+        result, data = mail.search(None, 'UNSEEN')
+        if result == 'OK':
+            for num in data[0].split():
+                # получение сообщения и его заголовка
+                result, data = mail.fetch(num, '(RFC822)')
+                if result == 'OK':
+                    email_message = email.message_from_bytes(data[0][1])
+                    #message = f"From: {email_message['From']}\nSubject: {email_message['Subject']}\n\n{get_body(email_message)}"
+                    message = f"From: Заявка Перекресток \n\n\n{get_body(email_message)}"
+                    # отправка сообщения в группу Telegram
+                    await bot.send_message(chat_id=CHAT_ID, text=message)
+                    logging.info(f"New message received from {email_message['From']}")
+                    # пометка сообщения как прочитанного
+                    mail.store(num, '+FLAGS', '\\Seen')
+    
+        else:
+            logging.info("No new messages")
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
+
+if __name__ == '__main__':
+    asyncio.run(main())
