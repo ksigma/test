@@ -15,17 +15,6 @@ import sys
 logging.basicConfig(filename='bot-mail.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-# параметры подключения к почтовому серверу
-# настройки почты
-IMAP_HOST = 'imap.yandex.com'
-IMAP_USER = '#####@rhoster.ru'
-IMAP_PASSWORD = '#####'
-
-# настройки Telegram
-BOT_TOKEN = '#####'
-CHAT_ID = '-######'
-
-
 # функция получения тела сообщения в виде строки
 def get_body(email_message):
     if email_message.is_multipart():
@@ -45,8 +34,8 @@ def get_body(email_message):
 # параметры подключения к почтовому серверу
 # настройки почты
 IMAP_HOST = 'imap.yandex.com'
-IMAP_USER = '####@#####.ru'
-IMAP_PASSWORD = '######'
+#IMAP_USER = '####@#####.ru'
+#IMAP_PASSWORD = '######'
 
 async def main():
     # создание объекта IMAP4 и подключение к серверу
@@ -56,8 +45,8 @@ async def main():
 
     # создание объекта Telegram Bot API
     # настройки Telegram
-    BOT_TOKEN = '#####'
-    CHAT_ID = '-######'
+    #BOT_TOKEN = '#####'
+    #CHAT_ID = '-######'
     bot = telegram.Bot(token=BOT_TOKEN)
 
     try:
